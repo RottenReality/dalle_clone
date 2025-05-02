@@ -11,7 +11,7 @@
   "description": "",
   "type": "module",
   "dependencies": {
-    "axios": "^1.9.0",
+    "@huggingface/inference": "^3.11.0",
     "cloudinary": "^2.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

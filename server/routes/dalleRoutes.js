@@ -1,6 +1,6 @@
 import express from 'express'
 import * as dotenv from 'dotenv'
-import axios from 'axios'
+import { InferenceClient } from '@huggingface/inference'
 
 import Post from '../mongodb/models/post.js'
 
@@ -8,35 +8,33 @@ dotenv.config()
 
 const router = express.Router()
 
+const client = new InferenceClient(process.env.HUGGINGFACE_API_TOKEN)
+
 router.route('/').get((req, res) => {
-    res.send('Hello from DALL-E!')
+  res.send('Hello from DALL-E!')
 })
 
 router.route('/').post(async (req, res) => {
-    try {
-        const { prompt } = req.body;
+  try {
+    const { prompt } = req.body
 
-        const response = await axios({
-            method: 'POST',
-            url: 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2',
-            headers: {
-                Authorization: `Bearer ${process.env.HUGGINGFACE_API_TOKEN}`,
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({ inputs: prompt }),
-            responseType: 'arraybuffer'
-        });
+    const image = await client.textToImage({
+      provider: 'replicate',
+      model: 'black-forest-labs/FLUX.1-dev',
+      inputs: prompt,
+      parameters: { num_inference_steps: 5 }
+    })
 
-        const base64Image = Buffer.from(response.data).toString('base64');
-        const image = `data:image/png;base64,${base64Image}`;
+    const buffer = await image.arrayBuffer()
+    const base64Image = Buffer.from(buffer).toString('base64')
 
-        res.status(200).json({ photo: image });
-
-    } catch (error) {
-        console.error(error?.response?.data || error.message);
-        res.status(500).json({ error: 'Image generation failed' });
-    }
+    res.status(200).json({
+      photo: `data:image/png;base64,${base64Image}`
+    })
+  } catch (error) {
+    console.error('Image generation failed:', error)
+    res.status(500).json({ error: 'Failed image generation' })
+  }
 })
 
 export default router

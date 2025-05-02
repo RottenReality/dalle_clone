@@ -5,7 +5,7 @@ const Home = () => {
     const [loading, setLoading] = useState(false)
     const [allPosts, setAllPosts] = useState(null)
 
-    const [searchText, setSearchText] = useState("abc")
+    const [searchText, setSearchText] = useState("")
 
     const RenderCards = ({ data, title }) => {
         if(data?.length > 0) return data.map((post) => <Card key= {post._id} {...post}/>)
